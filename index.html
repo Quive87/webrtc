@@ -32,6 +32,14 @@
 <body>
 <h1>Speech-to-Text Web UI</h1>
 <div id="controls">
+    <label for="language-select">Select Language:</label>
+    <select id="language-select">
+        <option value="en-US">English</option>
+        <option value="hi-IN">Hindi</option>
+    </select>
+    <br>
+    <label for="upload-file">Upload File:</label>
+    <input type="file" id="upload-file">
     <button id="start-btn">Start Recording</button>
     <button id="stop-btn" disabled>Stop Recording</button>
 </div>
@@ -41,13 +49,15 @@
     const startBtn = document.getElementById('start-btn');
     const stopBtn = document.getElementById('stop-btn');
     const outputDiv = document.getElementById('output');
+    const languageSelect = document.getElementById('language-select');
+    const uploadFileInput = document.getElementById('upload-file');
     let recognition;
 
     if (window.SpeechRecognition || window.webkitSpeechRecognition || window.mozSpeechRecognition || window.msSpeechRecognition) {
         recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition || window.mozSpeechRecognition || window.msSpeechRecognition)();
-        recognition.lang = 'en-US';
-
+        
         startBtn.addEventListener('click', () => {
+            recognition.lang = languageSelect.value;
             recognition.start();
             startBtn.disabled = true;
             stopBtn.disabled = false;
