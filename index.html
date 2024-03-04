@@ -3,47 +3,55 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Live Speech-to-Text Transcription</title>
+<title>Speech-to-Text</title>
 <style>
+    body {
+        font-family: Arial, sans-serif;
+    }
+    h1 {
+        text-align: center;
+    }
+    #controls {
+        text-align: center;
+        margin-bottom: 20px;
+    }
     #output {
-        margin-top: 20px;
+        margin: 0 auto;
         width: 80%;
-        height: 200px;
+        min-height: 200px;
+        max-height: 400px;
         border: 1px solid #ccc;
         padding: 10px;
         overflow-y: auto;
     }
+    #output p {
+        margin: 5px 0;
+    }
 </style>
 </head>
 <body>
-<h1>Live Speech-to-Text Transcription</h1>
-<button id="start-btn">Start Transcription</button>
-<button id="stop-btn" disabled>Stop Transcription</button>
+<h1>Speech-to-Text Web UI</h1>
+<div id="controls">
+    <button id="start-btn">Start Recording</button>
+    <button id="stop-btn" disabled>Stop Recording</button>
+</div>
 <div id="output"></div>
-<select id="voice-select">
-  <option value="voice1">Voice 1</option>
-  <option value="voice2">Voice 2</option>
-</select>
 
 <script>
     const startBtn = document.getElementById('start-btn');
     const stopBtn = document.getElementById('stop-btn');
     const outputDiv = document.getElementById('output');
-    const voiceSelect = document.getElementById('voice-select');
     let recognition;
 
     if (window.SpeechRecognition || window.webkitSpeechRecognition || window.mozSpeechRecognition || window.msSpeechRecognition) {
         recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition || window.mozSpeechRecognition || window.msSpeechRecognition)();
         recognition.lang = 'en-US';
-        recognition.interimResults = true; // Enable interim results for live transcription
 
         startBtn.addEventListener('click', () => {
             recognition.start();
             startBtn.disabled = true;
             stopBtn.disabled = false;
-            outputDiv.textContent = '';
-            outputDiv.style.display = 'block';
-            outputDiv.style.border = '1px solid #ccc';
+            outputDiv.innerHTML = '<p>Listening...</p>';
         });
 
         stopBtn.addEventListener('click', () => {
@@ -53,16 +61,8 @@
         });
 
         recognition.onresult = (event) => {
-            let interimTranscript = '';
-            for (let i = event.resultIndex; i < event.results.length; i++) {
-                if (event.results[i].isFinal) {
-                    const option = voiceSelect.value;
-                    outputDiv.innerHTML += `<p class="${option}">${event.results[i][0].transcript}</p>`;
-                } else {
-                    interimTranscript += event.results[i][0].transcript;
-                    outputDiv.innerHTML = `<p class="interim">${interimTranscript}</p>`;
-                }
-            }
+            const transcript = event.results[0][0].transcript;
+            outputDiv.innerHTML += `<p>${transcript}</p>`;
         };
 
         recognition.onspeechend = () => {
@@ -73,11 +73,15 @@
 
         recognition.onerror = (event) => {
             console.error('Speech recognition error detected: ' + event.error);
+            outputDiv.innerHTML += `<p>Error: ${event.error}</p>`;
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
         };
     } else {
         console.error('Speech recognition not supported in this browser');
-        outputDiv.textContent = 'Speech recognition is not supported in your browser.';
+        outputDiv.innerHTML = '<p>Speech recognition is not supported in your browser.</p>';
     }
 </script>
 </body>
 </html>
+
