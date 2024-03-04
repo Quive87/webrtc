@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Speech-to-Text</title>
+<title>Live Speech-to-Text Transcription</title>
 <style>
     #output {
         margin-top: 20px;
@@ -16,9 +16,9 @@
 </style>
 </head>
 <body>
-<h1>Speech-to-Text Web UI</h1>
-<button id="start-btn">Start Recording</button>
-<button id="stop-btn" disabled>Stop Recording</button>
+<h1>Live Speech-to-Text Transcription</h1>
+<button id="start-btn">Start Transcription</button>
+<button id="stop-btn" disabled>Stop Transcription</button>
 <div id="output"></div>
 
 <script>
@@ -30,6 +30,7 @@
     if (window.SpeechRecognition || window.webkitSpeechRecognition || window.mozSpeechRecognition || window.msSpeechRecognition) {
         recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition || window.mozSpeechRecognition || window.msSpeechRecognition)();
         recognition.lang = 'en-US';
+        recognition.interimResults = true; // Enable interim results for live transcription
 
         startBtn.addEventListener('click', () => {
             recognition.start();
@@ -47,8 +48,15 @@
         });
 
         recognition.onresult = (event) => {
-            const transcript = event.results[0][0].transcript;
-            outputDiv.textContent += transcript;
+            let interimTranscript = '';
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                if (event.results[i].isFinal) {
+                    outputDiv.innerHTML += '<p>' + event.results[i][0].transcript + '</p>';
+                } else {
+                    interimTranscript += event.results[i][0].transcript;
+                    outputDiv.innerHTML = '<p>' + interimTranscript + '</p>';
+                }
+            }
         };
 
         recognition.onspeechend = () => {
@@ -67,3 +75,4 @@
 </script>
 </body>
 </html>
+
