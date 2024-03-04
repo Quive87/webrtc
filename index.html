@@ -50,6 +50,8 @@
     const transcribeBtn = document.getElementById('transcribe-btn');
     const outputDiv = document.getElementById('output');
 
+    let recognition;
+
     transcribeBtn.addEventListener('click', () => {
         const file = uploadFileInput.files[0];
         if (!file) {
@@ -59,27 +61,47 @@
         const reader = new FileReader();
         reader.onload = function(event) {
             const audioBlob = event.target.result;
-            transcribe(audioBlob);
+            startTranscription(audioBlob);
         };
         reader.readAsDataURL(file);
     });
 
-    function transcribe(audioBlob) {
-        const recognition = new window.webkitSpeechRecognition();
-        recognition.lang = languageSelect.value;
-        recognition.onresult = (event) => {
-            const transcript = event.results[0][0].transcript;
-            outputDiv.innerHTML += `<p>${transcript}</p>`;
-        };
-        recognition.onerror = (event) => {
-            console.error('Speech recognition error detected: ' + event.error);
-            outputDiv.innerHTML += `<p>Error: ${event.error}</p>`;
-        };
-        recognition.onend = () => {
-            recognition.stop();
-        };
-        recognition.start();
-        recognition.processAudio(audioBlob);
+    function startTranscription(audioBlob) {
+        if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+            recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = languageSelect.value;
+            recognition.interimResults = true;
+            recognition.onresult = (event) => {
+                let interimTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    if (event.results[i].isFinal) {
+                        const finalTranscript = event.results[i][0].transcript;
+                        outputDiv.innerHTML += `<p>${finalTranscript}</p>`;
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+                if (interimTranscript.trim() !== '') {
+                    outputDiv.innerHTML = interimTranscript;
+                }
+            };
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error detected: ' + event.error);
+                outputDiv.innerHTML += `<p>Error: ${event.error}</p>`;
+            };
+            recognition.onend = () => {
+                recognition.stop();
+            };
+
+            const audio = new Audio();
+            audio.src = audioBlob;
+            audio.onloadedmetadata = () => {
+                recognition.start();
+                recognition.processAudio(audioBlob);
+            };
+        } else {
+            alert('Speech recognition is not supported in this browser.');
+        }
     }
 </script>
 </body>
