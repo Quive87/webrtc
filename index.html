@@ -20,11 +20,16 @@
 <button id="start-btn">Start Transcription</button>
 <button id="stop-btn" disabled>Stop Transcription</button>
 <div id="output"></div>
+<select id="voice-select">
+  <option value="voice1">Voice 1</option>
+  <option value="voice2">Voice 2</option>
+</select>
 
 <script>
     const startBtn = document.getElementById('start-btn');
     const stopBtn = document.getElementById('stop-btn');
     const outputDiv = document.getElementById('output');
+    const voiceSelect = document.getElementById('voice-select');
     let recognition;
 
     if (window.SpeechRecognition || window.webkitSpeechRecognition || window.mozSpeechRecognition || window.msSpeechRecognition) {
@@ -51,10 +56,11 @@
             let interimTranscript = '';
             for (let i = event.resultIndex; i < event.results.length; i++) {
                 if (event.results[i].isFinal) {
-                    outputDiv.innerHTML += '<p>' + event.results[i][0].transcript + '</p>';
+                    const option = voiceSelect.value;
+                    outputDiv.innerHTML += `<p class="${option}">${event.results[i][0].transcript}</p>`;
                 } else {
                     interimTranscript += event.results[i][0].transcript;
-                    outputDiv.innerHTML = '<p>' + interimTranscript + '</p>';
+                    outputDiv.innerHTML = `<p class="interim">${interimTranscript}</p>`;
                 }
             }
         };
@@ -75,4 +81,3 @@
 </script>
 </body>
 </html>
-
