@@ -40,6 +40,7 @@
     <br>
     <label for="upload-file">Upload File:</label>
     <input type="file" id="upload-file">
+    <button id="live-btn">Live</button>
     <button id="transcribe-btn">Transcribe</button>
 </div>
 <div id="output"></div>
@@ -47,9 +48,34 @@
 <script>
     const languageSelect = document.getElementById('language-select');
     const uploadFileInput = document.getElementById('upload-file');
+    const liveBtn = document.getElementById('live-btn');
     const transcribeBtn = document.getElementById('transcribe-btn');
     const outputDiv = document.getElementById('output');
     let recognition;
+
+    liveBtn.addEventListener('click', () => {
+        startLiveRecognition();
+    });
+
+    function startLiveRecognition() {
+        if (recognition) {
+            recognition.stop();
+        }
+        recognition = new window.webkitSpeechRecognition();
+        recognition.lang = languageSelect.value;
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            outputDiv.innerHTML += `<p>${transcript}</p>`;
+        };
+        recognition.onerror = (event) => {
+            console.error('Speech recognition error detected: ' + event.error);
+            outputDiv.innerHTML += `<p>Error: ${event.error}</p>`;
+        };
+        recognition.onend = () => {
+            recognition.stop();
+        };
+        recognition.start();
+    }
 
     transcribeBtn.addEventListener('click', () => {
         const file = uploadFileInput.files[0];
@@ -60,12 +86,7 @@
         const reader = new FileReader();
         reader.onload = function(event) {
             const audioBlob = event.target.result;
-            const audio = new Audio();
-            audio.src = audioBlob;
-            audio.play();
-            audio.addEventListener('ended', () => {
-                transcribe(audioBlob);
-            });
+            transcribe(audioBlob);
         };
         reader.readAsDataURL(file);
     });
